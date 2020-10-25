@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}ChatWoWs Room{% endblock %}
+
+{% block style %}
+<style>
+    .chatbox {
+        margin-bottom: 5em;
+    }
+
+    .container {
+        border: 2px solid #dedede;
+        background-color: #f1f1f1;
+        border-radius: 5px;
+        padding: 5px;
+        margin: 5px 0;
+    }
+
+    .darker {
+        border-color: #ccc;
+        background-color: #ddd;
+    }
+
+    .container::after {
+        content: "";
+        clear: both;
+        display: table;
+    }
+
+    .time-right {
+        float: right;
+        color: #aaa;
+    }
+
+    .time-left {
+        float: left;
+        color: #999;
+    }
+
+    .name {
+        font-weight: bolder;
+    }
+
+    #message-box {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        margin: 1.2em;
+        width: 100%;
+        display: flex;
+        background-color: white;
+    }
+
+    input {
+        vertical-align: middle;
+        padding: 10px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+    }
+
+    button {
+        padding: 10px 20px;
+        background-color: dodgerblue;
+        border: 1px solid #ddd;
+        color: white;
+    }
+
+    button:hover {
+        background-color: royalblue;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chatbox" id="chat">
+</div>
+<div id="message-box">
+    <form style="width: 100%; display: flex;" id="chat-form" onsubmit="sendChat()" method="POST">
+        <div style="width: 95%;">
+            <input type="text" name="message" style="width: 100%;" autofocus>
+        </div>
+        <div style="flex-grow: 1;">
+            <button type="submit">Send</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    const currentUser = "{{user}}";
+
+    function appendChat(chat) {
+        const chatNode = document.getElementById("chat");
+
+        const newChat = document.createElement("div");
+        const chatName = document.createElement("p");
+        chatName.innerText = chat.user;
+        chatName.setAttribute("class", "name")
+        const chatMessage = document.createElement("p");
+        chatMessage.innerText = chat.message;
+        const chatTime = document.createElement("span");
+        chatTime.innerText = chat.time;
+
+        newChat.setAttribute("class", chat.user === currentUser ? "container" : "container darker");
+        chatTime.setAttribute("class", chat.user === currentUser ? "time-right" : "time-left");
+
+        [chatName, chatMessage, chatTime].forEach(node => newChat.appendChild(node));
+        chatNode.appendChild(newChat);
+    }
+
+    function sendChat() {
+        event.preventDefault();
+
+        const chatForm = document.getElementById("chat-form");
+        const chatMessage = chatForm.elements.message.value;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'chat');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function () {
+            if (xhr.status === 201) {
+                chatForm.elements.message.value = "";
+            }
+        };
+        xhr.send(JSON.stringify({
+            user: currentUser,
+            message: chatMessage
+        }));
+    }
+
+    const source = new EventSource("{{ url_for('sse.stream') }}");
+    source.addEventListener('chat', function (event) {
+        const chat = JSON.parse(event.data);
+        appendChat(chat)
+    }, false);
+</script>
+{% endblock %}

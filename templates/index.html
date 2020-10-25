@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}ChatWoWs{% endblock %}
+
+{% block style %}
+<style>
+    input {
+        vertical-align: middle;
+        /* margin: 5px 10px 5px 0; */
+        padding: 10px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+    }
+
+    /* Style the submit button */
+    button {
+        padding: 10px 20px;
+        background-color: dodgerblue;
+        border: 1px solid #ddd;
+        color: white;
+    }
+
+    button:hover {
+        background-color: royalblue;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="position: relative; width: 100%;">
+    <form style="width: 80%;" id="user-form" method="POST" action="/room">
+        <div style="width: 95%;">
+            <input type="text" name="user" placeholder="Username" style="width: 100%;" autofocus required>
+        </div>
+        <div style="flex-grow: 1;">
+            <button type="submit">Send</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
